@@ -2,11 +2,13 @@ import {
   Controller,
   Delete,
   Get,
+  Inject,
   Param,
   Patch,
   Post,
   Request,
 } from '@nestjs/common';
+import { ClientProxy } from '@nestjs/microservices';
 import { ProductsService } from './products.service';
 
 export type ProductsResponse = {
@@ -16,10 +18,15 @@ export type ProductsResponse = {
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productsService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    @Inject('PRODUCT_SERVICE') private readonly client: ClientProxy,
+  ) {}
 
   @Get()
   async findAll(): Promise<ProductsResponse> {
+    this.client.emit('products_fetched', { message: 'Products fetched!' });
+
     return {
       message: 'Products fetched successfully!',
       data: await this.productsService.findAll(),
