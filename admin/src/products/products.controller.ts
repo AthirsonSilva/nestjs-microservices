@@ -9,11 +9,12 @@ import {
   Request,
 } from '@nestjs/common';
 import { ClientProxy } from '@nestjs/microservices';
+import { ProductsEntity } from './entities/products.entity';
 import { ProductsService } from './products.service';
 
 export type ProductsResponse = {
   message: string;
-  data?: any;
+  data?: ProductsEntity | ProductsEntity[] | null;
 };
 
 @Controller('products')
