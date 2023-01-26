@@ -15,19 +15,35 @@ import { ProductsService } from './products.service';
 export class ProductsController {
   constructor(private readonly productService: ProductsService) {}
 
-  @Get()
-  async findAll() {
-    return this.productService.findAll();
-  }
-
   @EventPattern('products_fetched')
   async handleProductsFetched(data: any) {
-    console.log('Products fetched!', data);
+    return {
+      products: data,
+    };
   }
 
   @EventPattern('product_created')
-  async handleProductCreated(data: any) {
-    console.log('Product created!', data);
+  async handleProductCreated(product: any) {
+    this.productService.create({
+      id: product.id,
+      title: product.title,
+      image: product.image,
+      likes: product.likes,
+    });
+  }
+
+  @EventPattern('product_updated')
+  async handleProductUpdate(product: any) {
+    this.productService.update(product.id, {
+      title: product.title,
+      image: product.image,
+      likes: product.likes,
+    });
+  }
+
+  @EventPattern('product_deleted')
+  async handleProductDeleted(product: any) {
+    this.productService.remove(product.id);
   }
 
   @Post()
@@ -35,9 +51,14 @@ export class ProductsController {
     return this.productService.create(createProductDto);
   }
 
+  @Get()
+  async findAll() {
+    return this.productService.findAll();
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.productService.findOne(id);
+    return this.productService.findOne(Number(id));
   }
 
   @Patch(':id')
@@ -45,7 +66,7 @@ export class ProductsController {
     @Param('id') id: string,
     @Body() updateProductDto: CreateProductDto,
   ) {
-    return this.productService.update(id, updateProductDto);
+    return this.productService.update(Number(id), updateProductDto);
   }
 
   @Delete(':id')

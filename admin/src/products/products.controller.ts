@@ -6,17 +6,17 @@ import {
   Param,
   Patch,
   Post,
-  Request,
 } from '@nestjs/common';
 import { Body } from '@nestjs/common/decorators/http/route-params.decorator';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateProductDto } from './dtos/create-product.dto';
+import { UpdateProductDto } from './dtos/update-product.dto';
 import { ProductsEntity } from './entities/products.entity';
 import { ProductsService } from './products.service';
 
 export type ProductsResponse = {
   message: string;
-  data?: ProductsEntity | ProductsEntity[] | null;
+  data?: ProductsEntity | ProductsEntity[];
 };
 
 @Controller('products')
@@ -28,11 +28,13 @@ export class ProductsController {
 
   @Get()
   async findAll(): Promise<ProductsResponse> {
-    this.client.emit('products_fetched', { message: 'Products fetched!' });
+    const products = await this.productsService.findAll();
+
+    this.client.emit('products_fetched', products);
 
     return {
       message: 'Products fetched successfully!',
-      data: await this.productsService.findAll(),
+      data: products,
     };
   }
 
@@ -53,31 +55,42 @@ export class ProductsController {
 
   @Get(':id')
   async get(@Param('id') id: string): Promise<ProductsResponse> {
+    const product = await this.productsService.findOne(Number(id));
+
+    this.client.emit('product_fetched', product);
+
     return {
       message: 'Product fetched successfully!',
-      data: await this.productsService.findOne(Number(id)),
+      data: product,
     };
   }
 
   @Patch(':id')
   async update(
     @Param('id') id: string,
-    @Request() request: any,
+    @Body() request: UpdateProductDto,
   ): Promise<ProductsResponse> {
-    const { title, image } = request.body;
+    const { title, image } = request;
+    await this.productsService.update(Number(id), {
+      title,
+      image,
+    });
+
+    const product = await this.productsService.findOne(Number(id));
+
+    this.client.emit('product_updated', product);
 
     return {
       message: 'Product updated successfully!',
-      data: await this.productsService.update(Number(id), {
-        title,
-        image,
-      }),
+      data: product,
     };
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string): Promise<ProductsResponse> {
     await this.productsService.remove(Number(id));
+
+    this.client.emit('product_deleted', id);
 
     return {
       message: 'Product deleted successfully!',
