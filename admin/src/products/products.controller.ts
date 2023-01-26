@@ -8,7 +8,9 @@ import {
   Post,
   Request,
 } from '@nestjs/common';
+import { Body } from '@nestjs/common/decorators/http/route-params.decorator';
 import { ClientProxy } from '@nestjs/microservices';
+import { CreateProductDto } from './dtos/create-product.dto';
 import { ProductsEntity } from './entities/products.entity';
 import { ProductsService } from './products.service';
 
@@ -35,15 +37,17 @@ export class ProductsController {
   }
 
   @Post()
-  async create(@Request() request: any): Promise<ProductsResponse> {
-    const { title, image } = request.body;
+  async create(@Body() request: CreateProductDto): Promise<ProductsResponse> {
+    const product = await this.productsService.create({
+      title: request.title,
+      image: request.image,
+    });
+
+    this.client.emit('product_created', product);
 
     return {
       message: 'Product created successfully!',
-      data: await this.productsService.create({
-        title,
-        image,
-      }),
+      data: product,
     };
   }
 

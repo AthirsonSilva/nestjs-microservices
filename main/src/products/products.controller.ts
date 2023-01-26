@@ -25,6 +25,11 @@ export class ProductsController {
     console.log('Products fetched!', data);
   }
 
+  @EventPattern('product_created')
+  async handleProductCreated(data: any) {
+    console.log('Product created!', data);
+  }
+
   @Post()
   async create(@Body() createProductDto: CreateProductDto) {
     return this.productService.create(createProductDto);
