@@ -30,4 +30,14 @@ export class ProductsService {
   async remove(id: number) {
     return await this.productsRepository.delete({ id });
   }
+
+  async like(id: number) {
+    const product = await this.productsRepository.findOne({ where: { id } });
+    console.log(product);
+
+    return await this.productsRepository.update(
+      { id },
+      { ...product, likes: product.likes + 1 },
+    );
+  }
 }

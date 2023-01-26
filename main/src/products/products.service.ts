@@ -33,4 +33,10 @@ export class ProductsService {
   async remove(id: string) {
     return this.productModel.deleteOne({ _id: id }).exec();
   }
+
+  async like(id: string) {
+    return this.productModel
+      .findOneAndUpdate({ _id: id }, { $inc: { likes: 1 } })
+      .exec();
+  }
 }

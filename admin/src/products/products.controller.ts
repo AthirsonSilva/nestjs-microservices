@@ -1,4 +1,5 @@
 import {
+  Body,
   Controller,
   Delete,
   Get,
@@ -6,8 +7,8 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
-import { Body } from '@nestjs/common/decorators/http/route-params.decorator';
 import { ClientProxy } from '@nestjs/microservices';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { UpdateProductDto } from './dtos/update-product.dto';
@@ -95,5 +96,11 @@ export class ProductsController {
     return {
       message: 'Product deleted successfully!',
     };
+  }
+
+  @Post('like')
+  async like(@Query('id') id: string) {
+    console.log('id', id);
+    return this.productsService.like(Number(id));
   }
 }

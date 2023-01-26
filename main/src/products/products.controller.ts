@@ -1,3 +1,4 @@
+import { HttpService } from '@nestjs/axios';
 import {
   Body,
   Controller,
@@ -6,6 +7,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { EventPattern } from '@nestjs/microservices';
 import { CreateProductDto } from './dtos/create-product.dto';
@@ -13,7 +15,10 @@ import { ProductsService } from './products.service';
 
 @Controller('products')
 export class ProductsController {
-  constructor(private readonly productService: ProductsService) {}
+  constructor(
+    private readonly productsService: ProductsService,
+    private readonly httpService: HttpService,
+  ) {}
 
   @EventPattern('products_fetched')
   async handleProductsFetched(data: any) {
@@ -24,7 +29,7 @@ export class ProductsController {
 
   @EventPattern('product_created')
   async handleProductCreated(product: any) {
-    this.productService.create({
+    this.productsService.create({
       id: product.id,
       title: product.title,
       image: product.image,
@@ -34,7 +39,7 @@ export class ProductsController {
 
   @EventPattern('product_updated')
   async handleProductUpdate(product: any) {
-    this.productService.update(product.id, {
+    this.productsService.update(product.id, {
       title: product.title,
       image: product.image,
       likes: product.likes,
@@ -43,22 +48,31 @@ export class ProductsController {
 
   @EventPattern('product_deleted')
   async handleProductDeleted(product: any) {
-    this.productService.remove(product.id);
-  }
-
-  @Post()
-  async create(@Body() createProductDto: CreateProductDto) {
-    return this.productService.create(createProductDto);
+    this.productsService.remove(product.id);
   }
 
   @Get()
   async findAll() {
-    return this.productService.findAll();
+    return this.productsService.findAll();
+  }
+
+  @Post('like')
+  async like(@Query('id') id: string) {
+    this.httpService
+      .post(`http://localhost:3333/api/products/like?id=${id}`, {})
+      .subscribe((response) => {
+        return response.data;
+      });
+  }
+
+  @Post()
+  async create(@Body() createProductDto: CreateProductDto) {
+    return this.productsService.create(createProductDto);
   }
 
   @Get(':id')
   async findOne(@Param('id') id: string) {
-    return this.productService.findOne(Number(id));
+    return this.productsService.findOne(Number(id));
   }
 
   @Patch(':id')
@@ -66,11 +80,11 @@ export class ProductsController {
     @Param('id') id: string,
     @Body() updateProductDto: CreateProductDto,
   ) {
-    return this.productService.update(Number(id), updateProductDto);
+    return this.productsService.update(Number(id), updateProductDto);
   }
 
   @Delete(':id')
   async remove(@Param('id') id: string) {
-    return this.productService.remove(id);
+    return this.productsService.remove(id);
   }
 }

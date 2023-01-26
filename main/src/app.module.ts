@@ -1,3 +1,4 @@
+import { HttpModule } from '@nestjs/axios';
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -23,6 +24,7 @@ const DB_NAME = process.env.DB_NAME || 'nest_main';
       dbName: DB_NAME,
     }),
     ProductsModule,
+    HttpModule,
   ],
   controllers: [AppController],
   providers: [AppService],
